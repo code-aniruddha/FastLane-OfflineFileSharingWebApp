@@ -1,0 +1,166 @@
+﻿.file-list {
+    
+  margin-top: 20px;
+}
+
+.file-list-header {
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.file-list-header h3 {
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.file-count {
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 4px 12px;
+
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.file-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.file-list-empty h3 {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.file-list-empty p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-light);
+}
+
+.file-table thead {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.file-table th {
+  padding: 15px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.file-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.file-table th.sortable:hover {
+  color: var(--primary-color);
+}
+
+.file-table th.sortable.active {
+  color: var(--primary-color);
+}
+
+.file-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.file-table tbody tr:hover {
+  background: var(--surface);
+}
+
+.file-table td {
+  padding: 15px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.file-icon-cell {
+  width: 50px;
+  text-align: center;
+}
+
+.file-icon-large {
+  font-size: 24px;
+}
+
+.file-name-cell {
+  max-width: 300px;
+}
+
+.file-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.download-btn:hover {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
+}
+
+.copy-btn:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+}
+
+.delete-btn:hover {
+  background: var(--danger-color);
+  border-color: var(--danger-color);
+  box-shadow: 0 2px 8px rgba(255, 118, 117, 0.3);
+}

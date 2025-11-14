@@ -1,0 +1,886 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastLane - Receiver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #E76F51;
+            --secondary: #E9C46A;
+            --bg-dark: #1C2025;
+            --bg-surface: rgba(40, 45, 51, 0.85);
+            --text-primary: #F8F9FA;
+            --text-secondary: rgba(248, 249, 250, 0.7);
+            --border-glow: rgba(231, 111, 81, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #1C2025;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        #device-name-modal,
+        #waiting-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(28, 32, 37, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .modal-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            border: 2px solid var(--border-glow);
+            padding: 50px 40px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: slideUp 0.6s;
+        }
+
+        .modal-icon {
+            font-size: 90px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 30px rgba(231, 111, 81, 0.8));
+        }
+
+        .modal-card h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #E76F51, #E9C46A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .modal-card p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 1.05em;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(231, 111, 81, 0.1);
+            border: 2px solid rgba(231, 111, 81, 0.3);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(231, 111, 81, 0.3);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #E76F51, #E9C46A);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(231, 111, 81, 0.6);
+        }
+
+        .spinner {
+            border: 4px solid rgba(231, 111, 81, 0.2);
+            border-top: 4px solid #E76F51;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px;
+            background: var(--bg-surface);
+            border-radius: 30px;
+            border: 1px solid var(--border-glow);
+        }
+
+        .logo-3d {
+            font-size: 70px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 20px rgba(231, 111, 81, 0.6));
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #E76F51, #E9C46A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .file-card {
+            background: var(--bg-surface);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--border-glow);
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(231, 111, 81, 0.4);
+        }
+
+        .file-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .file-size {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #E76F51, #E9C46A);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(231, 111, 81, 0.6);
+        }
+
+        /* Upload Section Styles */
+        .upload-section {
+            background: var(--bg-surface);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--border-glow);
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drop-zone {
+            border: 3px dashed var(--border-glow);
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(231, 111, 81, 0.05);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragging {
+            border-color: var(--primary);
+            background: rgba(231, 111, 81, 0.15);
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .selected-files-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .selected-file-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(231, 111, 81, 0.1);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .file-item-icon {
+            font-size: 30px;
+        }
+
+        .file-item-info {
+            flex: 1;
+        }
+
+        .file-item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-item-size {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .remove-file-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .remove-file-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.05);
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-clear {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+
+        .btn-clear:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #E76F51, #E9C46A);
+            color: white;
+        }
+
+        .btn-upload:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(231, 111, 81, 0.6);
+        }
+
+        .btn-upload:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(231, 111, 81, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #E76F51, #E9C46A);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .warning-message,
+        .info-message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .warning-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .info-message {
+            background: rgba(233, 196, 106, 0.1);
+            border: 1px solid rgba(233, 196, 106, 0.3);
+            color: #E9C46A;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(231, 111, 81, 0.1);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #E76F51, #E9C46A);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="three-canvas"></canvas>
+    <div id="device-name-modal">
+        <div class="modal-card">
+            <div class="modal-icon">⚡</div>
+            <h2>Welcome to FastLane</h2>
+            <p>📱 Enter your device name to request access</p>
+            <div class="input-group">
+                <input type="text" id="device-name-input" placeholder="💻 Enter device name" maxlength="30" autofocus>
+            </div>
+            <button class="submit-btn" onclick="requestAccess()">🚀 Request Access</button>
+        </div>
+    </div>
+    <div id="waiting-modal" class="hidden">
+        <div class="modal-card">
+            <div class="spinner"></div>
+            <h2>⏳ Waiting for Approval</h2>
+            <p>🔐 Please wait for the host to approve</p>
+            <p id="request-device-name" style="color: var(--primary); font-weight: 700;"></p>
+        </div>
+    </div>
+    <div class="container hidden" id="main-content">
+        <header>
+            <div class="logo-3d">⚡</div>
+            <h1>FastLane</h1>
+            <p style="color: var(--text-secondary);">📤 Two-Way File Sharing - Upload & Download</p>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3 class="section-title">📤 Upload Files to Sender</h3>
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(event)">
+                <div class="drop-zone-icon">📂</div>
+                <h3>Drag & Drop Files Here</h3>
+                <p style="color: var(--text-secondary); margin-top: 10px;">or click to browse</p>
+                <p id="file-count" style="color: var(--primary); margin-top: 15px; font-weight: 700;"></p>
+            </div>
+
+            <div id="selected-files-container" style="display: none;">
+                <div id="warning-container"></div>
+                <div class="selected-files-list" id="selected-files"></div>
+                <div class="upload-actions">
+                    <button class="btn btn-clear" onclick="clearSelection()">🗑️ Clear</button>
+                    <button class="btn btn-upload" id="upload-btn" onclick="uploadFiles()">🚀 Upload Files</button>
+                </div>
+                <div id="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Section -->
+        <div>
+            <h3 class="section-title">📥 Available Files from Sender</h3>
+            <div id="content">
+                <div style="text-align:center; padding:100px 40px;">
+                    <div style="font-size:90px;">📂</div>
+                    <h2>No files available</h2>
+                </div>
+            </div>
+        </div>
+        <script>
+            function initThree() {
+                const canvas = document.getElementById('three-canvas');
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({
+                    canvas,
+                    alpha: true,
+                    antialias: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.position.z = 5;
+                const geometry = new THREE.BufferGeometry();
+                const vertices = new Float32Array(15000);
+                for (let i = 0; i < 15000; i++) vertices[i] = (Math.random() - 0.5) * 50;
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                const particles = new THREE.Points(geometry, new THREE.PointsMaterial({
+                    color: 0xE76F51,
+                    size: 0.05
+                }));
+                scene.add(particles);
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    particles.rotation.y += 0.0005;
+                    renderer.render(scene, camera);
+                }
+                animate();
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }
+            const API_URL = window.location.origin;
+            let requestId = null;
+            async function requestAccess() {
+                const deviceName = document.getElementById('device-name-input').value.trim();
+                if (!deviceName) {
+                    alert('Please enter a device name');
+                    return;
+                }
+                try {
+                    const response = await fetch(`${API_URL}/request-access`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            deviceName
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        requestId = data.requestId;
+                        document.getElementById('device-name-modal').classList.add('hidden');
+                        document.getElementById('waiting-modal').classList.remove('hidden');
+                        document.getElementById('request-device-name').textContent = `Device: ${deviceName}`;
+                        checkAccessStatus();
+                    }
+                } catch (error) {
+                    alert('Connection error');
+                }
+            }
+            async function checkAccessStatus() {
+                if (!requestId) return;
+                const interval = setInterval(async () => {
+                    try {
+                        const response = await fetch(`${API_URL}/check-access/${requestId}`);
+                        const data = await response.json();
+                        if (data.status === 'approved') {
+                            clearInterval(interval);
+                            document.getElementById('waiting-modal').classList.add('hidden');
+                            document.getElementById('main-content').classList.remove('hidden');
+                            loadFiles();
+                            setInterval(loadFiles, 5000);
+                        } else if (data.status === 'rejected') {
+                            clearInterval(interval);
+                            alert('Access denied');
+                            location.reload();
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }, 2000);
+            }
+
+            function formatBytes(bytes) {
+                if (!bytes) return '0 B';
+                const k = 1024,
+                    sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function getFileIcon(mime) {
+                if (!mime) return '📄';
+                if (mime.startsWith('image/')) return '🖼️';
+                if (mime.startsWith('video/')) return '🎬';
+                if (mime.startsWith('audio/')) return '🎵';
+                if (mime.includes('pdf')) return '📕';
+                if (mime.includes('zip') || mime.includes('rar') || mime.includes('7z')) return '📦';
+                if (mime.includes('text')) return '📝';
+                if (mime.includes('word') || mime.includes('document')) return '📘';
+                if (mime.includes('excel') || mime.includes('spreadsheet')) return '📊';
+                if (mime.includes('powerpoint') || mime.includes('presentation')) return '📈';
+                return '📄';
+            }
+            async function loadFiles() {
+                try {
+                    const response = await fetch(`${API_URL}/files`);
+                    const data = await response.json();
+                    const files = data.files || [];
+                    const content = document.getElementById('content');
+                    if (files.length === 0) {
+                        content.innerHTML =
+                            '<div style="text-align:center; padding:100px;"><div style="font-size:90px;">📂</div><h2>No files available</h2><p style="color: var(--text-secondary); margin-top: 12px;">Files will appear here when shared</p></div>';
+                        return;
+                    }
+                    content.innerHTML = `<div class="file-grid">${files.map(file => `
+                    <div class="file-card">
+                        <div class="file-icon">${getFileIcon(file.mimetype)}</div>
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatBytes(file.size)}</div>
+                        <button class="download-btn" onclick="downloadFile('${file.id}','${file.name.replace(/'/g,"\\'")}',${file.size})">⬇️ Download</button>
+                    </div>
+                `).join('')}</div>`;
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+            async function downloadFile(id, name, size) {
+                if (!size || isNaN(size) || size <= 0) {
+                    const link = document.createElement('a');
+                    link.href = `${API_URL}/download/${id}`;
+                    link.download = name;
+                    link.click();
+                    return;
+                }
+                const concurrency = 4;
+                const partSize = Math.ceil(size / concurrency);
+                try {
+                    const parts = new Array(concurrency).fill(0).map((_, i) => {
+                        const start = i * partSize;
+                        const end = Math.min((i + 1) * partSize - 1, size - 1);
+                        return {
+                            start,
+                            end
+                        };
+                    }).filter(p => p.start <= p.end);
+                    const fetchPart = async (p, idx) => {
+                        const headers = {
+                            'Range': `bytes=${p.start}-${p.end}`
+                        };
+                        const resp = await fetch(`${API_URL}/download/${id}`, {
+                            headers
+                        });
+                        if (!resp.ok && resp.status !== 206 && resp.status !== 200) {
+                            throw new Error(`Part ${idx} failed: ${resp.status}`);
+                        }
+                        return resp.arrayBuffer();
+                    };
+                    const buffers = await Promise.all(parts.map((p, idx) => fetchPart(p, idx)));
+                    const blob = new Blob(buffers, {
+                        type: 'application/octet-stream'
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = name;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    console.error('Parallel download failed', err);
+                    const link = document.createElement('a');
+                    link.href = `${API_URL}/download/${id}`;
+                    link.download = name;
+                    link.click();
+                }
+            }
+            document.getElementById('device-name-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') requestAccess();
+            });
+
+            // Upload functionality
+            let selectedFiles = [];
+            const maxFileSize = 10 * 1024 * 1024 * 1024; // 10GB
+
+            // Drag and drop handlers
+            const dropZone = document.getElementById('drop-zone');
+
+            dropZone.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragging');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragging');
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragging');
+
+                const files = Array.from(e.dataTransfer.files);
+                selectedFiles = files;
+                updateFileList();
+            });
+
+            function handleFileSelect(event) {
+                const files = Array.from(event.target.files);
+                selectedFiles = files;
+                updateFileList();
+            }
+
+            function updateFileList() {
+                const container = document.getElementById('selected-files-container');
+                const fileList = document.getElementById('selected-files');
+                const fileCount = document.getElementById('file-count');
+                const warningContainer = document.getElementById('warning-container');
+
+                if (selectedFiles.length === 0) {
+                    container.style.display = 'none';
+                    fileCount.textContent = '';
+                    return;
+                }
+
+                container.style.display = 'block';
+                fileCount.textContent = `✅ ${selectedFiles.length} file(s) selected`;
+
+                const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+                const hasOversizedFile = selectedFiles.some(file => file.size > maxFileSize);
+                const isLargeUpload = totalSize > 1024 * 1024 * 1024; // 1GB
+
+                // Show warnings
+                warningContainer.innerHTML = '';
+                if (hasOversizedFile) {
+                    warningContainer.innerHTML = `
+                    <div class="warning-message">
+                        ⚠️ Some files exceed 10GB limit and cannot be uploaded
+                    </div>
+                `;
+                } else if (isLargeUpload) {
+                    warningContainer.innerHTML = `
+                    <div class="info-message">
+                        ⚡ Large transfer detected. This may take a few minutes depending on your network speed.
+                    </div>
+                `;
+                }
+
+                // Update upload button
+                const uploadBtn = document.getElementById('upload-btn');
+                uploadBtn.disabled = hasOversizedFile;
+
+                // Render file list
+                fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="selected-file-item">
+                    <div class="file-item-icon">${getFileIcon(file.type)}</div>
+                    <div class="file-item-info">
+                        <div class="file-item-name">${file.name}</div>
+                        <div class="file-item-size">${formatBytes(file.size)}</div>
+                    </div>
+                    <button class="remove-file-btn" onclick="removeFile(${index})">✕</button>
+                </div>
+            `).join('');
+            }
+
+            function removeFile(index) {
+                selectedFiles = selectedFiles.filter((_, i) => i !== index);
+                updateFileList();
+            }
+
+            function clearSelection() {
+                selectedFiles = [];
+                document.getElementById('file-input').value = '';
+                updateFileList();
+            }
+
+            async function uploadFiles() {
+                if (selectedFiles.length === 0) return;
+
+                const uploadBtn = document.getElementById('upload-btn');
+                const progressContainer = document.getElementById('progress-container');
+                const progressFill = document.getElementById('progress-fill');
+
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = '⏳ Uploading...';
+                progressContainer.style.display = 'block';
+
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                try {
+                    const xhr = new XMLHttpRequest();
+
+                    xhr.upload.addEventListener('progress', (e) => {
+                        if (e.lengthComputable) {
+                            const percentComplete = Math.round((e.loaded / e.total) * 100);
+                            progressFill.style.width = percentComplete + '%';
+                            progressFill.textContent = percentComplete + '%';
+
+                            // Log progress for large files
+                            if (e.total > 100 * 1024 * 1024 && percentComplete % 10 === 0) {
+                                console.log(
+                                    `Upload progress: ${percentComplete}% (${formatBytes(e.loaded)} / ${formatBytes(e.total)})`
+                                    );
+                            }
+                        }
+                    });
+
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status === 200) {
+                            console.log('Upload completed successfully');
+                            alert('✅ Files uploaded successfully!');
+                            clearSelection();
+                            progressContainer.style.display = 'none';
+                            loadFiles(); // Refresh the download list
+                        } else {
+                            console.error('Upload failed with status:', xhr.status);
+                            alert('❌ Upload failed. Please try again.');
+                        }
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = '🚀 Upload Files';
+                    });
+
+                    xhr.addEventListener('error', (e) => {
+                        console.error('Upload network error:', e);
+                        alert('❌ Upload failed. Please check your connection and try again.');
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = '🚀 Upload Files';
+                        progressContainer.style.display = 'none';
+                    });
+
+                    xhr.addEventListener('timeout', () => {
+                        console.error('Upload timeout');
+                        alert('❌ Upload timeout. The file may be too large or connection is slow.');
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = '🚀 Upload Files';
+                        progressContainer.style.display = 'none';
+                    });
+
+                    xhr.open('POST', `${API_URL}/upload`);
+                    xhr.timeout = 0; // No timeout for large files
+                    xhr.send(formData);
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    alert('❌ Upload error: ' + error.message);
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = '🚀 Upload Files';
+                    progressContainer.style.display = 'none';
+                }
+            }
+
+            // Initialize Three.js background
+            initThree();
+        </script>
+    </div>
+</body>
+
+</html>
