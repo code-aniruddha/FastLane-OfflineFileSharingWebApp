@@ -4,9 +4,14 @@ node_modules/
 # Build outputs
 dist/
 dist-electron/
+dist-electron-out/
 
 # Uploads (temporary files)
 uploads/
+
+# Build artifacts
+build-installer-admin.ps1
+*.lnk
 
 # Logs
 *.log

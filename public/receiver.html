@@ -70,33 +70,33 @@
             display: none !important;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        <blade keyframes|%20fadeIn%20%7B%0D>from {
+            opacity: 0;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        to {
+            opacity: 1;
+        }
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+        <blade keyframes|%20slideUp%20%7B%0D>from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+
+        <blade keyframes|%20spin%20%7B%0D>0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
         }
 
         .modal-card {
@@ -829,7 +829,7 @@
                             if (e.total > 100 * 1024 * 1024 && percentComplete % 10 === 0) {
                                 console.log(
                                     `Upload progress: ${percentComplete}% (${formatBytes(e.loaded)} / ${formatBytes(e.total)})`
-                                    );
+                                );
                             }
                         }
                     });

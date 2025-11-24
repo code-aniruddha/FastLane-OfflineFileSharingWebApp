@@ -5,12 +5,14 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const QRCode = require('qrcode');
+const os = require('os');
 
 class FileServer {
   constructor() {
     this.app = express();
     this.files = new Map(); // Store file metadata
-    this.uploadsDir = path.join(__dirname, '..', 'uploads');
+    // Use user's home directory for uploads (works in packaged app)
+    this.uploadsDir = path.join(os.homedir(), '.fastlane', 'uploads');
     this.sessionToken = this.generateToken();
     this.logs = [];
     this.connectedDevices = new Map(); // Store connected devices
@@ -295,7 +297,7 @@ class FileServer {
 
     // Serve the public HTML page for browser access
     this.app.get('/', (req, res) => {
-      const publicHtml = path.join(__dirname, '..', 'public', 'receiver.html');
+      const publicHtml = path.join(__dirname, '..', 'public', 'index.html');
       if (fs.existsSync(publicHtml)) {
         res.sendFile(publicHtml);
       } else {
