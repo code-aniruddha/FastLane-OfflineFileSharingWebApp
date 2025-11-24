@@ -77,13 +77,31 @@
 
 ## 🚀 Installation
 
-### Prerequisites
+### 📦 Download Prebuilt App (Recommended)
+
+**Windows Users** - Download the ready-to-use executable:
+
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20v1.0.0-E76F51?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/code-aniruddha/FastLane-OfflineFileSharingWebApp/releases/latest/download/FastLane-v1.0.0-Windows.zip)
+
+1. Download `FastLane-v1.0.0-Windows.zip` from the [Releases](https://github.com/code-aniruddha/FastLane-OfflineFileSharingWebApp/releases) page
+2. Extract the ZIP file
+3. Run `FastLane 1.0.0.exe`
+4. Scan the QR code from your mobile device
+5. Start sharing files instantly! ⚡
+
+> **Note**: Windows may show a SmartScreen warning since the app is not code-signed. Click "More info" → "Run anyway" to proceed.
+
+---
+
+### 🛠️ Build from Source
+
+#### Prerequisites
 
 - **Node.js** (v16 or higher)
 - **npm** or **yarn**
 - **Git**
 
-### Quick Start
+#### Quick Start
 
 ```bash
 # Clone the repository
@@ -99,10 +117,10 @@ npm install
 npm run dev
 ```
 
-### Build for Production
+#### Build for Production
 
 ```bash
-# Build for Windows
+# Build for Windows (creates portable .exe)
 npm run build:win
 
 # Build for macOS
@@ -114,6 +132,8 @@ npm run build:linux
 # Build for all platforms
 npm run build:all
 ```
+
+**Output**: Built executables will be in the `dist-electron-out` folder.
 
 ---
 
